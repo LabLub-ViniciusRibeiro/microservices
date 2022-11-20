@@ -2,8 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Env from '@ioc:Adonis/Core/Env'
 import User from 'App/Models/User';
 import LoginValidator from 'App/Validators/Auth/LoginValidator';
-import RecoverPasswordEmail from 'App/Mailers/RecoverPasswordEmail';
-
+import Producer from '../../../KafkaService/Producer';
 const EXPIRES_IN = Env.get('NODE_ENV') === 'development' ? '' : '30mins'
 
 export default class AuthController {
@@ -31,8 +30,10 @@ export default class AuthController {
             const user = await User.findByOrFail('email', email);
             const { tokenHash } = await auth.use('api').generate(user);
             user.merge({ rememberMeToken: tokenHash }).save();
-            const recoverPasswordEmail = new RecoverPasswordEmail(user, tokenHash);
-            await recoverPasswordEmail.send(); 
+            // const recoverPasswordEmail = new RecoverPasswordEmail(user, tokenHash);
+            // await recoverPasswordEmail.send();
+            const producer = new Producer();
+            await producer.produce({ topic: 'recover-password', messages: [{ value: '' }] });
             return response.ok({ message: 'Token created successfully' });
         } catch (error) {
             return response.badRequest({ message: 'Error sending recover email', originalMessage: error.message });

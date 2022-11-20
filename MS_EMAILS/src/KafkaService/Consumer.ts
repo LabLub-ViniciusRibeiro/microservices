@@ -2,7 +2,7 @@ import { Kafka, Consumer as KafkaConsumer } from "kafkajs";
 import { HandleEmail } from "../services/HandleEmail";
 
 interface IConsumeProps {
-  topic: string;
+  topics: string[];
   fromBeginning: boolean;
 }
 
@@ -17,19 +17,33 @@ export class Consumer {
     this.consumer = kafka.consumer({ groupId });
   }
 
-  public async consume({ topic, fromBeginning }: IConsumeProps): Promise<void> {
+  public async consume({ topics, fromBeginning }: IConsumeProps): Promise<void> {
     await this.consumer.connect();
-    await this.consumer.subscribe({ topic, fromBeginning });
-
-    console.log("Iniciando busca...");
+    await this.consumer.subscribe({ topics: topics, fromBeginning });
 
     await this.consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
+      eachMessage: async ({ topic, message }) => {
         const data = message.value?.toString();
 
         if (data !== undefined) {
           const handleEmail = new HandleEmail();
-          handleEmail.welcomeEmail();
+          console.log(topic)
+          switch (topic) {
+            case 'welcome-user':
+              handleEmail.welcomeEmail();
+              break;
+            case 'new-bets':
+              console.log('oi')
+              handleEmail.newBetsEmail();
+              break;
+            case 'recover-password':
+              handleEmail.recoverPasswordEmail();
+              break;
+            case 'schedule-remember':
+              handleEmail.rememberToPlayEmail();
+              break;
+          }
+          
         }
       },
     });

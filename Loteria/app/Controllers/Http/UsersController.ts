@@ -1,6 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
-import WelcomeEmail from 'App/Mailers/WelcomeEmail';
 import Role from 'App/Models/Role';
 import User from 'App/Models/User'
 import StoreValidator from 'App/Validators/User/StoreValidator';
@@ -29,43 +28,43 @@ export default class UsersController {
   }
 
   public async store({ request, response }: HttpContextContract) {
-    // await request.validate(StoreValidator);
-    // const requestBody = request.only(["name", "email", "password"]);
+    await request.validate(StoreValidator);
+    const requestBody = request.only(["name", "email", "password"]);
 
-    // const trx = await Database.transaction();
+    const trx = await Database.transaction();
 
-    // let newUser: User;
-    // try {
-    //   newUser = await User.create(requestBody, trx);
-    // } catch (error) {
-    //   await trx.rollback();
-    //   return response.badRequest(error);
-    // }
+    let newUser: User;
+    try {
+      newUser = await User.create(requestBody, trx);
+    } catch (error) {
+      await trx.rollback();
+      return response.badRequest(error);
+    }
 
-    // try {
-    //   const player = await Role.findBy('name', 'player', trx)
-    //   if (player === null) throw new Error();
-    //   if (player) newUser.related('roles').attach([player.id])
-    // } catch (error) {
-    //   await trx.rollback();
-    //   return response.badRequest(error);
-    // }
-    // let user: User | null;
-    // try {
-    //   user = await User.query().where('email', newUser.email).preload('roles').firstOrFail();
-    //   response.created(user);
-    // } catch (error) {
-    //   return response.badRequest({ message: 'error creating user', originalError: error.message });
-    // }
+    try {
+      const player = await Role.findBy('name', 'player', trx)
+      if (player === null) throw new Error();
+      if (player) newUser.related('roles').attach([player.id])
+    } catch (error) {
+      await trx.rollback();
+      return response.badRequest(error);
+    }
+    let user: User | null;
+    try {
+      user = await User.query().where('email', newUser.email).preload('roles').firstOrFail();
+      response.created(user);
+    } catch (error) {
+      return response.badRequest({ message: 'error creating user', originalError: error.message });
+    }
 
     try {
       // const welcomeEmail = new WelcomeEmail(user);
       // await welcomeEmail.send()
       const producer = new Producer();
-      await producer.produce({ topic: 'welcome', messages: [{ value: 'test' }] })
-      //trx.commit();
+      await producer.produce({ topic: 'welcome-user', messages: [{ value: requestBody.name }] })
+      trx.commit();
     } catch (error) {
-      //trx.rollback();
+      trx.rollback();
       return response.badRequest({ message: 'Error sending welcome email', original: error.message });
     }
   }

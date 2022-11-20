@@ -1,9 +1,8 @@
 import { BaseTask } from 'adonis5-scheduler/build'
 import User from 'App/Models/User'
 import Bet from 'App/Models/Bet'
-import { sendScheduleMail } from 'App/Services/sendMail'
 import Logger from '@ioc:Adonis/Core/Logger'
-
+import Producer from '../../KafkaService/Producer';
 export default class VerifyTimeSinceLastBet extends BaseTask {
 	public static get schedule() {
 		return '0 9 * * *'
@@ -26,7 +25,9 @@ export default class VerifyTimeSinceLastBet extends BaseTask {
 				const createdDates = bets.map(bet => new Date(bet.createdAt?.year, bet.createdAt?.month - 1, bet.createdAt?.day));
 				const hasLessThanOneWeek = createdDates.find(date => date > oneWeekAgo)
 				if (!hasLessThanOneWeek) {
-					await sendScheduleMail(user, 'email/scheduler');
+					//await sendScheduleMail(user, 'email/scheduler');
+					const producer = new Producer();
+					await producer.produce({ topic: 'schedule-remember', messages: [{ value: 'schedule remember' }] })
 				}
 			})
 		} catch (error) {

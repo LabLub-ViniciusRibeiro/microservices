@@ -1,10 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import BetsCreatedEmail from 'App/Mailers/BetsCreatedEmail';
 import Bet from 'App/Models/Bet'
 import Cart from 'App/Models/Cart';
 import Game from 'App/Models/Game';
 import User from 'App/Models/User';
 import StoreValidator from 'App/Validators/Bet/StoreValidator';
+import Producer from '../../../KafkaService/Producer';
 
 
 interface IBetsRequest {
@@ -76,8 +76,10 @@ export default class BetsController {
         const game = await Game.findBy('id', bet.gameId);
         return (`-- Chosen numbers: ${bet.chosenNumbers}, game: ${game?.type} --`);
       }));
-      const betsCreatedEmail = new BetsCreatedEmail(auth.user as User, betsToDisplay.join(', '));
-      await betsCreatedEmail.send();
+      // const betsCreatedEmail = new BetsCreatedEmail(auth.user as User, betsToDisplay.join(', '));
+      // await betsCreatedEmail.send();
+      const producer = new Producer();
+      await producer.produce({ topic: 'new-bets', messages: [{ value: 'new bets' }]})
     } catch (error) {
       response.badRequest({ message: 'Error sending new bets mail', originalMessage: error.message });
     }
