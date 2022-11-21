@@ -3,9 +3,10 @@ import { HandleEmail } from "../services/HandleEmail";
 
 export const routes = Router();
 
-const handleEmail = new HandleEmail()
 
-routes.post('/user', ({ res }) => {
+routes.post('/user', (req, res) => {
+    const { email } = req.body;
+    const handleEmail = new HandleEmail(email);
     try {
         handleEmail.welcomeEmail();
         res?.status(201).send({ message: 'New user email sent' });
@@ -14,7 +15,9 @@ routes.post('/user', ({ res }) => {
     }
 });
 
-routes.post('/bets', ({ res }) => {
+routes.post('/bets', (req, res) => {
+    const { email } = req.body;
+    const handleEmail = new HandleEmail(email);
     try {
         handleEmail.newBetsEmail();
         res?.status(201).send({ message: 'New bets email sent' });
@@ -23,7 +26,9 @@ routes.post('/bets', ({ res }) => {
     }
 });
 
-routes.post('/recover-password', ({ res }) => {
+routes.post('/recover-password', (req, res) => {
+    const { email } = req.body;
+    const handleEmail = new HandleEmail(email);
     try {
         handleEmail.recoverPasswordEmail();
         res?.status(201).send({ message: 'Recover password email sent' });
@@ -32,7 +37,9 @@ routes.post('/recover-password', ({ res }) => {
     }
 });
 
-routes.post('/schedule-remember', ({ res }) => {
+routes.post('/schedule-remember', (req, res) => {
+    const { email } = req.body;
+    const handleEmail = new HandleEmail(email);
     try {
         handleEmail.rememberToPlayEmail();
         res?.status(201).send({ message: 'Remember to play email sent' });

@@ -26,14 +26,12 @@ export class Consumer {
         const data = message.value?.toString();
 
         if (data !== undefined) {
-          const handleEmail = new HandleEmail();
-          console.log(topic)
+          const handleEmail = new HandleEmail(message.value?.toString() as string);
           switch (topic) {
             case 'welcome-user':
               handleEmail.welcomeEmail();
               break;
             case 'new-bets':
-              console.log('oi')
               handleEmail.newBetsEmail();
               break;
             case 'recover-password':
