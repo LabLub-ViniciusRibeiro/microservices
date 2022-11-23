@@ -61,7 +61,10 @@ export default class UsersController {
       // const welcomeEmail = new WelcomeEmail(user);
       // await welcomeEmail.send()
       const producer = new Producer();
-      await producer.produce({ topic: 'welcome-user', messages: [{ value: user.email }] })
+      await producer.produce({
+        topic: 'welcome-user',
+        messages: [{ value: JSON.stringify({ user }) }]
+      })
       trx.commit();
     } catch (error) {
       trx.rollback();

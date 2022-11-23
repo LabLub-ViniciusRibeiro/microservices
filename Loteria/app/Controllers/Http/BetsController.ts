@@ -74,12 +74,12 @@ export default class BetsController {
     try {
       const betsToDisplay = await Promise.all(bets.map(async bet => {
         const game = await Game.findBy('id', bet.gameId);
-        return (`-- Chosen numbers: ${bet.chosenNumbers}, game: ${game?.type} --`);
+        return ({ chosenNumbers: bet.chosenNumbers, game: game?.type });
       }));
       // const betsCreatedEmail = new BetsCreatedEmail(auth.user as User, betsToDisplay.join(', '));
       // await betsCreatedEmail.send();
       const producer = new Producer();
-      await producer.produce({ topic: 'new-bets', messages: [{ value: 'new bets' }]})
+      await producer.produce({ topic: 'new-bets', messages: [{ value: JSON.stringify({ user: auth.user, bets: betsToDisplay }) }]})
     } catch (error) {
       response.badRequest({ message: 'Error sending new bets mail', originalMessage: error.message });
     }

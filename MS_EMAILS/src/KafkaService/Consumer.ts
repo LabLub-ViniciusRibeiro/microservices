@@ -24,15 +24,16 @@ export class Consumer {
     await this.consumer.run({
       eachMessage: async ({ topic, message }) => {
         const data = message.value?.toString();
-
+        const objData = JSON.parse(data as string);
         if (data !== undefined) {
-          const handleEmail = new HandleEmail(message.value?.toString() as string);
+          const handleEmail = new HandleEmail(objData.user.email);
+
           switch (topic) {
             case 'welcome-user':
-              handleEmail.welcomeEmail();
+              handleEmail.welcomeEmail(objData.user.name, objData.user.email);
               break;
             case 'new-bets':
-              handleEmail.newBetsEmail();
+              handleEmail.newBetsEmail(objData.bets);
               break;
             case 'recover-password':
               handleEmail.recoverPasswordEmail();
@@ -41,7 +42,7 @@ export class Consumer {
               handleEmail.rememberToPlayEmail();
               break;
           }
-          
+
         }
       },
     });

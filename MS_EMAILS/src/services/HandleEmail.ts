@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer'
 import { MailOptions } from 'nodemailer/lib/json-transport';
-import { compile } from 'handlebars';
-import mjml2html from 'mjml';
 import hbs from 'nodemailer-express-handlebars';
 
 export class HandleEmail {
@@ -18,43 +16,58 @@ export class HandleEmail {
                 pass: "86ab6e581522f5"
             }
         });
+    }
+
+    public async welcomeEmail(username: string, email: string) {
+
         const options = {
             viewEngine: {
                 extname: '.html', // handlebars extension
                 layoutsDir: 'views/email/', // location of handlebars templates
-                defaultLayout: 'newUser', // name of main template
+                defaultLayout: 'welcomeEmail', // name of main template
                 partialsDir: 'views/email/', // location of your subtemplates aka. header, footer etc
             },
             viewPath: 'views/email',
             extName: '.html'
         }
         this.transport.use('compile', hbs(options))
-    }
-
-    public async welcomeEmail() {
 
         const mailData = {
             from: this.from,  // sender address
             to: this.to,   // list of receivers
             subject: 'Welcome new user',
-            text: 'Welcome!!',
-            template: 'newUser',
+            template: 'welcomeEmail',
             context: {
-                message: 'Hello World',
-                people: ['Vini', 'Ana']
+                name: username,
+                email: email
             }
 
         };
         await this.transport.sendMail(mailData);
     }
 
-    public async newBetsEmail() {
-        const mailData: MailOptions = {
+    public async newBetsEmail(bets: { chosenNumbers: string[], game: string }[]) {
+
+        const options = {
+            viewEngine: {
+                extname: '.html', // handlebars extension
+                layoutsDir: 'views/email/', // location of handlebars templates
+                defaultLayout: 'newBetsEmail', // name of main template
+                partialsDir: 'views/email/', // location of your subtemplates aka. header, footer etc
+            },
+            viewPath: 'views/email',
+            extName: '.html'
+        }
+        this.transport.use('compile', hbs(options))
+
+        const mailData = {
             from: this.from,  // sender address
             to: this.to,   // list of receivers
             subject: 'You have purchased new bets!',
-            text: 'New bets!!',
-            html: { path: './templates/newUser.edge' }
+            template: 'newBetsEmail',
+            context: {
+                bets: bets
+            }
         };
         await this.transport.sendMail(mailData);
     }
